@@ -2,7 +2,6 @@ import axios from 'axios'
 import decompress from 'decompress'
 import fs from 'fs'
 import Parser from 'node-dbf'
-import { criaLoadBar } from './LoadingBar'
 import { Processo } from './model/Processo'
 import cliProgress, { SingleBar } from 'cli-progress'
 
@@ -14,7 +13,7 @@ const download = async () => {
       method: 'GET',
       responseType: 'stream',
       onDownloadProgress: (a) => {
-        const porcentagem = a.progress * 100
+        const porcentagem = (a.progress || 0) * 100
         bar.update(porcentagem)
       }
     }).then((response) => {
