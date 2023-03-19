@@ -24,7 +24,8 @@ const defineRotas = () => {
     try {
       const conexao = await conectar()
       try {
-        const processos = await buscar(conexao, req.query.numeroProcesso)
+        const numeroProcesso = req.query.numeroProcesso
+        const processos = await buscar(conexao, numeroProcesso as string)
         res.send(processos).status(200)
       } catch (error) {
         res.send(error).status(500)

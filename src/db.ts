@@ -3,6 +3,7 @@ import { criaLoadBar } from './utils'
 import { Processo } from './model/Processo'
 
 const conectar = async () => {
+  console.log('conectar')
   try {
     const pool = new Pool({
       host: process.env.DB_HOST,
@@ -17,11 +18,18 @@ const conectar = async () => {
   }
 }
 const desconectar = async (conexao: PoolClient) => {
-  conexao.release()
+  console.log('desconectar')
+  try {
+    conexao.release()
+  } catch (error) {
+    throw error
+  }
 }
 
 const criaTabelasBanco = async (conexao: PoolClient) => {
-  conexao.query(`
+  console.log('criaTabelasBanco')
+  try {
+    conexao.query(`
     create table if not exists Processo (
       PROCESSO varchar,
       NUMERO varchar,
@@ -36,48 +44,76 @@ const criaTabelasBanco = async (conexao: PoolClient) => {
       UF varchar,
       DSProcesso varchar
     )
-  `);
-}
-const insereProcessos = async (conexao: PoolClient, processos: Processo[]) => {
-  const bar = criaLoadBar('Inserindo processos na tabela Processo', (processos.length - 1))
-  for (const [index, processo] of processos.entries()) {
-    bar.update(index)
-    const values = [
-      processo.PROCESSO,
-      processo.NUMERO,
-      processo.ANO,
-      processo.AREA_HA,
-      processo.ID,
-      processo.FASE,
-      processo.ULT_EVENTO,
-      processo.NOME,
-      processo.SUBS,
-      processo.USO,
-      processo.UF,
-      processo.DSProcesso
-    ]
-    await conexao.query(`
-    insert into processo (processo, numero, ano, area_ha, id, fase, ult_evento, nome, subs, uso, uf, dsprocesso)
-    values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-    `, values);
+  `); 
+  } catch (error) {
+    throw error
   }
 }
+const insereProcessos = async (conexao: PoolClient, processos: Processo[]) => {
+  console.log('insereProcessos')
+  try {
+    const bar = criaLoadBar('Inserindo processos na tabela Processo', (processos.length - 1))
+    for (const [index, processo] of processos.entries()) {
+      bar.update(index)
+      const values = [
+        processo.PROCESSO,
+        processo.NUMERO,
+        processo.ANO,
+        processo.AREA_HA,
+        processo.ID,
+        processo.FASE,
+        processo.ULT_EVENTO,
+        processo.NOME,
+        processo.SUBS,
+        processo.USO,
+        processo.UF,
+        processo.DSProcesso
+      ]
+      await conexao.query(`
+      insert into processo (processo, numero, ano, area_ha, id, fase, ult_evento, nome, subs, uso, uf, dsprocesso)
+      values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      `, values);
+    }
+  } catch (error) {
+    throw error
+  }
+
+}
 const listar = async (conexao: PoolClient) => {
-  const processos = await conexao.query<Processo[]>(`
-    select *
-    from processo
-    fetch first 1000 rows only
-  `)
-  return processos.rows
+  console.log('listar')
+  try {
+    const processos = await conexao.query<Processo[]>(`
+      select *
+      from processo
+      fetch first 1000 rows only
+    `)
+    return processos.rows
+  } catch (error) {
+    throw error
+  }
+
 }
 const buscar = async (conexao: PoolClient, processo: string) => {
-  console.log(processo)
-  const processos = await conexao.query<Processo[]>(`
-    select *
-    from processo
-    where processo = '${processo}'
-  `)
-  return processos.rows[0]
+  console.log('buscar')
+  try {
+    const processos = await conexao.query<Processo[]>(`
+      select *
+      from processo
+      where processo = $1
+    `, [processo])
+    return processos.rows[0]
+  } catch (error) {
+    throw error
+  }
+
+}
+const deletaAntigos = async (conexao: PoolClient) => {
+  console.log('deletaAntigos')
+  try {
+    await conexao.query(`delete from processo`)
+  } catch (error) {
+    throw error
+  }
 }
 
 export {
@@ -86,5 +122,6 @@ export {
   criaTabelasBanco,
   insereProcessos,
   listar,
-  buscar
+  buscar,
+  deletaAntigos
 }
