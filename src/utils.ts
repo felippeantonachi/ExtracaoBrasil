@@ -6,6 +6,7 @@ import { Processo } from './model/Processo'
 import cliProgress, { SingleBar } from 'cli-progress'
 
 const download = async () => {
+  console.log('download')
   return new Promise((resolve, reject) => {
     const bar = criaLoadBar('Download Arquivo Brasil.zip', 100)
     axios({
@@ -28,11 +29,40 @@ const download = async () => {
   })
 }
 const extrair = () => {
-  return decompress('BRASIL.zip', 'extracao').finally(() => {
-    fs.unlinkSync('Brasil.zip')
+  console.log('extrair')
+  return new Promise((resolve, reject) => {
+    deleteDirR('./extracao', () => {
+      return decompress('BRASIL.zip', 'extracao', {
+        filter(file) {
+          return file.path === 'BRASIL.dbf' 
+        },
+      }).catch((err) => {
+        reject(err)
+      }).finally(() => {
+        fs.unlinkSync('Brasil.zip')
+        resolve('')
+      })
+    })
   })
 }
+const deleteDirR = (path: string, cb: CallableFunction) => {
+  if (fs.existsSync(path)) {
+    const files = fs.readdirSync(path)
+    for (const [index, file] of files.entries()) {
+      const curPath = path + '/' + file
+      if (fs.lstatSync(curPath).isDirectory())
+        deleteDirR(curPath, cb)
+      else
+        fs.unlinkSync(curPath)
+    }
+    fs.rmdirSync(path)
+    cb(null)
+  } else {
+    cb(new Error('The path passed does not exist.'))
+  }
+}
 const dbfToArray = (): Promise<Processo[]> => {
+  console.log('dbfToArray')
   return new Promise((resolve, reject) => {
     try {
       const processos: Processo[] = [] 
