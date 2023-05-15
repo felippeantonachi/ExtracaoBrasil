@@ -83,9 +83,8 @@ const listar = async (conexao: PoolClient) => {
   console.log('listar')
   try {
     const processos = await conexao.query<Processo[]>(`
-      select *
+      select processo, nome, ult_evento
       from processo
-      fetch first 1000 rows only
     `)
     return processos.rows
   } catch (error) {
@@ -93,19 +92,33 @@ const listar = async (conexao: PoolClient) => {
   }
 
 }
-const buscar = async (conexao: PoolClient, processo: string) => {
-  console.log('buscar')
+const buscar = async (conexao: PoolClient, numeroProcesso: string) => {
+  console.log(`buscar => ${numeroProcesso}`)
   try {
     const processos = await conexao.query<Processo[]>(`
       select *
       from processo
-      where processo = $1
-    `, [processo])
-    return processos.rows[0]
+      where REGEXP_REPLACE(processo, '[^0-9]+', '', 'g') = $1
+    `, [numeroProcesso])
+    return processos.rows
   } catch (error) {
     throw error
   }
-
+}
+const filtrar = async (conexao: PoolClient, filtro: string) => {
+  console.log(`filtrar => ${filtro}`)
+  try {
+    const processos = await conexao.query<Processo[]>(`
+      select distinct processo, nome, ult_evento
+      from processo
+      where REGEXP_REPLACE(replace(LOWER(processo), ' ', ''), '[^0-9]+', '', 'g') like replace(LOWER($1), ' ', '')
+      or replace(LOWER(nome), ' ', '') like replace(LOWER($1), ' ', '')
+      fetch first 100 rows only
+    `, [`%${filtro}%`])
+    return processos.rows
+  } catch (error) {
+    throw error
+  }
 }
 const deletaAntigos = async (conexao: PoolClient) => {
   console.log('deletaAntigos')
@@ -123,5 +136,6 @@ export {
   insereProcessos,
   listar,
   buscar,
+  filtrar,
   deletaAntigos
 }
