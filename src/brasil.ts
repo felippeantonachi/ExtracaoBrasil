@@ -10,7 +10,6 @@ const iniciaProcessoArquivo = async () => {
       const processos = await dbfToArray()
       const conexao = await conectar()
       try {
-        await criaTabelasBanco(conexao)
         await deletaAntigos(conexao)
         await insereProcessos(conexao, processos)
       } catch (error) {
