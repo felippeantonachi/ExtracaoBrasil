@@ -109,10 +109,11 @@ const filtrar = async (conexao: PoolClient, filtro: string) => {
   console.log(`filtrar => ${filtro}`)
   try {
     const processos = await conexao.query<Processo[]>(`
-      select distinct processo, nome, ult_evento
+      select processo, nome, ult_evento
       from processo
       where REGEXP_REPLACE(replace(LOWER(processo), ' ', ''), '[^0-9]+', '', 'g') like replace(LOWER($1), ' ', '')
       or replace(LOWER(nome), ' ', '') like replace(LOWER($1), ' ', '')
+      order by length (processo) desc
       fetch first 100 rows only
     `, [`%${filtro}%`])
     return processos.rows
