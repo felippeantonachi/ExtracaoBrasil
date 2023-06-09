@@ -77,7 +77,6 @@ const insereProcessos = async (conexao: PoolClient, processos: Processo[]) => {
   } catch (error) {
     throw error
   }
-
 }
 const listar = async (conexao: PoolClient) => {
   console.log('listar')

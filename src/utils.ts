@@ -1,9 +1,9 @@
 import axios from 'axios'
 import decompress from 'decompress'
 import fs from 'fs'
-import Parser from 'node-dbf'
 import { Processo } from './model/Processo'
 import cliProgress, { SingleBar } from 'cli-progress'
+import { DBFFile } from 'dbffile'
 
 const download = async () => {
   console.log('download')
@@ -61,19 +61,22 @@ const deleteDirR = (path: string, cb: CallableFunction) => {
     cb(new Error('The path passed does not exist.'))
   }
 }
-const dbfToArray = (): Promise<Processo[]> => {
+const dbfToArray = async () => {
   console.log('dbfToArray')
-  return new Promise((resolve, reject) => {
-    try {
-      const processos: Processo[] = [] 
-      let parser = new Parser('./extracao/BRASIL.dbf', { encoding: 'latin1' })
-      parser.on('record', (processo: Processo) => { processos.push(processo) })
-      parser.on('end', () => { resolve(processos) })
-      parser.parse()
-    } catch (error) {
-      reject(error)
+  try {
+    const processos: Processo[] = []
+    let dbf = await DBFFile.open('./extracao/BRASIL.dbf')
+    console.log(`DBF file contains ${dbf.recordCount} records.`)
+    console.log(`Field names: ${dbf.fields.map(f => f.name).join(', ')}`)
+    let records = (await dbf.readRecords()) as Processo[]
+    for (let processo of records) {
+      processos.push(processo)
     }
-  })
+    return processos
+  } catch (error) {
+    console.log('Deu Ruim', error)
+    throw error
+  }
 }
 const criaLoadBar = (texto: string, total: number) => {
   const bar = new cliProgress.SingleBar({stopOnComplete: true, format: `{bar} {percentage}% ${texto}`, clearOnComplete: true}, cliProgress.Presets.shades_classic)

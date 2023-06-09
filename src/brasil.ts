@@ -17,6 +17,8 @@ const iniciaProcessoArquivo = async () => {
       } finally {
         desconectar(conexao)
       }
+    }, {
+      runOnInit: true
     })
   } catch (error) {
     console.error(error)
