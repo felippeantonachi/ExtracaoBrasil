@@ -42,7 +42,6 @@ const defineRotas = () => {
       try {
         const filtro = req.query.filtro
         const processos = await filtrar(conexao, filtro as string)
-        console.log(processos.length)
         res.send(processos).status(200)
       } catch (error) {
         res.send(error).status(500)

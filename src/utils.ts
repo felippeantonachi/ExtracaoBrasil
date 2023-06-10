@@ -66,15 +66,12 @@ const dbfToArray = async () => {
   try {
     const processos: Processo[] = []
     let dbf = await DBFFile.open('./extracao/BRASIL.dbf')
-    console.log(`DBF file contains ${dbf.recordCount} records.`)
-    console.log(`Field names: ${dbf.fields.map(f => f.name).join(', ')}`)
     let records = (await dbf.readRecords()) as Processo[]
     for (let processo of records) {
       processos.push(processo)
     }
     return processos
   } catch (error) {
-    console.log('Deu Ruim', error)
     throw error
   }
 }
