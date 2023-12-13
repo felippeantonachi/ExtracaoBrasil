@@ -1,0 +1,21 @@
+name: CI deploy to ExtracaoBrasil
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build_and_deploy:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install
+        run: npm install
+
+      - name: Start/Reload PM2
+        run: pm2 restart 'Extração Brasil' --update-env
