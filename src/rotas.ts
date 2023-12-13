@@ -4,7 +4,7 @@ import { conectar, desconectar, listar, buscar, filtrar } from './db'
 const defineRotas = () => {
   const router = Router()
 
-  router.get('/', (req, res) => (res.status(200).send('Extração Brasil')))
+  router.get('/', (req, res) => (res.sendStatus(200)))
   router.get('/listar', async (req, res) => {
     try {
       const conexao = await conectar()
