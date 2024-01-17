@@ -1,6 +1,6 @@
 import cron from 'node-cron'
 import { download, extrair, dbfToArray } from './utils'
-import { conectar, desconectar, insereProcessos, deletaAntigos } from './db'
+import { conectar, desconectar, insereProcessos } from './db'
 
 const iniciaProcessoArquivo = async () => {
   try {
@@ -10,13 +10,14 @@ const iniciaProcessoArquivo = async () => {
       const processos = await dbfToArray()
       const conexao = await conectar()
       try {
-        await deletaAntigos(conexao)
         await insereProcessos(conexao, processos)
       } catch (error) {
         console.log(error)
       } finally {
         desconectar(conexao)
       }
+    }, {
+      runOnInit: true
     })
   } catch (error) {
     console.error(error)

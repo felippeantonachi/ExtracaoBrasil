@@ -1,87 +1,78 @@
-import { Pool, PoolClient } from 'pg'
-import { criaLoadBar } from './utils'
+import { Client } from 'pg'
+import { capitalizarTodasAsPalavras } from './utils'
 import { Processo } from './model/Processo'
+import {v4} from 'uuid'
+const eventos: [{value: number, label: string}] = require('./eventos.json')
 
-const conectar = async () => {
-  console.log('conectar')
-  try {
-    const pool = new Pool({
-      host: process.env.DB_HOST,
-      database: process.env.DB_DATABASE,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      port: parseInt(process.env.DB_PORT || '') || 5432
-    })
-    return pool.connect()
-  } catch (error) {
-    throw error
-  }
+const conectar = async (): Promise<Client> => {
+  const client = new Client(process.env.DATABASE_URL)
+  await client.connect()
+  return client
 }
-const desconectar = async (conexao: PoolClient) => {
-  console.log('desconectar')
-  try {
-    conexao.release()
-  } catch (error) {
-    throw error
-  }
+const desconectar = async (client: Client): Promise<void> => {
+  await client.end()
 }
-
-const criaTabelasBanco = async (conexao: PoolClient) => {
-  console.log('criaTabelasBanco')
-  try {
-    conexao.query(`
-    create table if not exists Processo (
-      PROCESSO varchar,
-      NUMERO varchar,
-      ANO varchar,
-      AREA_HA varchar,
-      ID varchar,
-      FASE varchar,
-      ULT_EVENTO varchar,
-      NOME varchar,
-      SUBS varchar,
-      USO varchar,
-      UF varchar,
-      DSProcesso varchar
-    )
-  `); 
-  } catch (error) {
-    throw error
-  }
-}
-const insereProcessos = async (conexao: PoolClient, processos: Processo[]) => {
+const insereProcessos = async (client: Client, processos: Processo[]) => {
   console.log('insereProcessos')
   try {
-    const bar = criaLoadBar('Inserindo processos na tabela Processo', (processos.length - 1))
-    for (const [index, processo] of processos.entries()) {
-      bar.update(index)
-      const values = [
-        processo.PROCESSO,
-        processo.NUMERO,
-        processo.ANO,
+    for (const processo of processos) {
+      const dadosProcesso = [
+        v4(),
+        processo.PROCESSO.replace('/', ''),
         processo.AREA_HA,
-        processo.ID,
-        processo.FASE,
-        processo.ULT_EVENTO,
-        processo.NOME,
-        processo.SUBS,
-        processo.USO,
-        processo.UF,
-        processo.DSProcesso
+        capitalizarTodasAsPalavras(processo.FASE),
+        processo.UF
       ]
-      await conexao.query(`
-      insert into processo (processo, numero, ano, area_ha, id, fase, ult_evento, nome, subs, uso, uf, dsprocesso)
-      values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-      `, values);
+      const resultadoInsercaoProcesso = await client.query(`
+        insert into "Processo" ("Id", "NumeroProcesso", "Area", "FaseAtual", "UF")
+        select $1, $2, $3, $4, $5
+        where not exists (
+          select 1
+          from "Processo"
+          where "NumeroProcesso" = $2
+        ) returning "Id"
+      `, dadosProcesso)
+      let idInserido = resultadoInsercaoProcesso.rows[0]?.Id
+
+      if (!idInserido) {
+        const resultadoSelect = await client.query(`
+          select Id
+          from "Processo"
+          where "NumeroProcesso" = $2
+        `, [processo.PROCESSO.replace('/', '')])
+
+        idInserido = resultadoSelect.rows[0].Id
+      }
+
+      const eventoId = processo.ULT_EVENTO.substring(0, processo.ULT_EVENTO.indexOf(' -'))
+      const evento = eventos.find(e => e.value === parseInt(eventoId))
+      const dadosEvento = [
+        v4(),
+        evento?.label,
+        processo.ULT_EVENTO.substring(processo.ULT_EVENTO.length-10, 100),
+        idInserido,
+        new Date()
+      ]
+      await client.query(`
+        insert into "Evento" ("Id", "Descricao", "Data", "ProcessoId", "DataCriacao")
+        select $1, $2, $3, $4, $5
+        where not exists (
+          select 1
+          from "Evento"
+          where "Descricao" = $2
+          and "Data" = $3
+          and "ProcessoId" = $4
+        )
+      `, dadosEvento)
     }
   } catch (error) {
     throw error
   }
 }
-const listar = async (conexao: PoolClient) => {
+const listar = async (client: Client) => {
   console.log('listar')
   try {
-    const processos = await conexao.query<Processo[]>(`
+    const processos = await client.query<Processo[]>(`
       select processo, nome, ult_evento
       from processo
     `)
@@ -91,10 +82,10 @@ const listar = async (conexao: PoolClient) => {
   }
 
 }
-const buscar = async (conexao: PoolClient, numeroProcesso: string) => {
+const buscar = async (client: Client, numeroProcesso: string) => {
   console.log(`buscar => ${numeroProcesso}`)
   try {
-    const processos = await conexao.query<Processo[]>(`
+    const processos = await client.query<Processo[]>(`
       select *
       from processo
       where REGEXP_REPLACE(processo, '[^0-9]+', '', 'g') = $1
@@ -104,10 +95,10 @@ const buscar = async (conexao: PoolClient, numeroProcesso: string) => {
     throw error
   }
 }
-const filtrar = async (conexao: PoolClient, filtro: string) => {
+const filtrar = async (client: Client, filtro: string) => {
   console.log(`filtrar => ${filtro}`)
   try {
-    const processos = await conexao.query<Processo[]>(`
+    const processos = await client.query<Processo[]>(`
       select *
       from processo
       where REGEXP_REPLACE(replace(LOWER(processo), ' ', ''), '[^0-9]+', '', 'g') like replace(LOWER($1), ' ', '')
@@ -120,10 +111,10 @@ const filtrar = async (conexao: PoolClient, filtro: string) => {
     throw error
   }
 }
-const deletaAntigos = async (conexao: PoolClient) => {
+const deletaAntigos = async (client: Client) => {
   console.log('deletaAntigos')
   try {
-    await conexao.query(`delete from processo`)
+    await client.query(`delete from processo`)
   } catch (error) {
     throw error
   }
@@ -132,7 +123,6 @@ const deletaAntigos = async (conexao: PoolClient) => {
 export {
   conectar,
   desconectar,
-  criaTabelasBanco,
   insereProcessos,
   listar,
   buscar,

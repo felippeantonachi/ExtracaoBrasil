@@ -1,0 +1,18 @@
+[
+  {"value": "Apto para Disponibilidade", "label": "Apto para Disponibilidade"},
+  {"value": "Autorização de Pesquisa", "label": "Autorização de Pesquisa"},
+  {"value": "Concessão de Lavra", "label": "Concessão de Lavra"},
+  {"value": "Direito de Requerer a Lavra", "label": "Direito de Requerer a Lavra"},
+  {"value": "Disponibilidade", "label": "Disponibilidade"},
+  {"value": "Lavra Garimpeira", "label": "Lavra Garimpeira"},
+  {"value": "Licenciamento", "label": "Licenciamento"},
+  {"value": "Manifesto de Jazida", "label": "Manifesto de Jazida"},
+  {"value": "Manifesto de Mina", "label": "Manifesto de Mina"},
+  {"value": "Reconhecimento Geológico", "label": "Reconhecimento Geológico"},
+  {"value": "Registro de Extração", "label": "Registro de Extração"},
+  {"value": "Requerimento de Lavra", "label": "Requerimento de Lavra"},
+  {"value": "Requerimento de Lavra Garimpeira", "label": "Requerimento de Lavra Garimpeira"},
+  {"value": "Requerimento de Licenciamento", "label": "Requerimento de Licenciamento"},
+  {"value": "Requerimento de Pesquisa", "label": "Requerimento de Pesquisa"},
+  {"value": "Requerimento de Registro de Extração", "label": "Requerimento de Registro de Extração"}
+]

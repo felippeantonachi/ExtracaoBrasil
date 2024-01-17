@@ -2,20 +2,18 @@ import axios from 'axios'
 import decompress from 'decompress'
 import fs from 'fs'
 import { Processo } from './model/Processo'
-import cliProgress, { SingleBar } from 'cli-progress'
 import { DBFFile } from 'dbffile'
 
 const download = async () => {
   console.log('download')
   return new Promise((resolve, reject) => {
-    const bar = criaLoadBar('Download Arquivo Brasil.zip', 100)
     axios({
       url: 'https://app.anm.gov.br/dadosabertos/SIGMINE/PROCESSOS_MINERARIOS/BRASIL.zip',
       method: 'GET',
       responseType: 'stream',
       onDownloadProgress: (a) => {
         const porcentagem = (a.progress || 0) * 100
-        bar.update(porcentagem)
+        console.log(porcentagem)
       }
     }).then((response) => {
       response.data.on('error', (error: any) => {
@@ -66,7 +64,7 @@ const dbfToArray = async () => {
   try {
     const processos: Processo[] = []
     let dbf = await DBFFile.open('./extracao/BRASIL.dbf')
-    let records = (await dbf.readRecords()) as Processo[]
+    let records = await dbf.readRecords() as unknown as Processo[]
     for (let processo of records) {
       processos.push(processo)
     }
@@ -75,15 +73,28 @@ const dbfToArray = async () => {
     throw error
   }
 }
-const criaLoadBar = (texto: string, total: number) => {
-  const bar = new cliProgress.SingleBar({stopOnComplete: true, format: `{bar} {percentage}% ${texto}`, clearOnComplete: true}, cliProgress.Presets.shades_classic)
-  bar.start(total, 0)
-  return bar
+const capitalizarTodasAsPalavras = (frase: string) => {
+  if (typeof frase !== 'string' || frase.length === 0) return "Fase Inválida"
+  frase = frase.toLowerCase()
+  const palavras = frase.split(' ')
+  const palavrasExcecoes = ['de', 'da', 'em', 'na', 'no', 'e', 'do', 'dos', 'das', 'ao', 'aos', 'à', 'às', 'por', 'para']
+  const fraseCapitalizada = palavras.map((palavra, index) => {
+    if (index === 0 || !palavrasExcecoes.includes(palavra.toLowerCase())) return capitalizarPrimeiraLetra(palavra)
+    else return palavra.toLowerCase()
+  }).join(' ')
+  return fraseCapitalizada
+}
+const capitalizarPrimeiraLetra = (string: string) => {
+  if (string.length > 0) {
+    return string[0].toUpperCase() + string.slice(1)
+  } else {
+    return string
+  }
 }
 
 export {
   download,
   extrair,
   dbfToArray,
-  criaLoadBar
+  capitalizarTodasAsPalavras
 }
