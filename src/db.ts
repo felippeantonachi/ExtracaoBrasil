@@ -65,6 +65,7 @@ const insereProcessos = async (client: Client, processos: Processo[]) => {
         )
       `, dadosEvento)
     }
+    console.log('fim insereProcessos')
   } catch (error) {
     throw error
   }
