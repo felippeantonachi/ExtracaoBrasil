@@ -33,12 +33,12 @@ const insereProcessos = async (client: Client, processos: Processo[]) => {
         ) returning "Id"
       `, dadosProcesso)
       let idInserido = resultadoInsercaoProcesso.rows[0]?.Id
-
+      
       if (!idInserido) {
         const resultadoSelect = await client.query(`
-          select Id
+          select "Id"
           from "Processo"
-          where "NumeroProcesso" = $2
+          where "NumeroProcesso" = $1
         `, [processo.PROCESSO.replace('/', '')])
 
         idInserido = resultadoSelect.rows[0].Id
@@ -88,8 +88,8 @@ const buscar = async (client: Client, numeroProcesso: string) => {
   try {
     const processos = await client.query<Processo[]>(`
       select *
-      from processo
-      where REGEXP_REPLACE(processo, '[^0-9]+', '', 'g') = $1
+      from "Processo"
+      where REGEXP_REPLACE("NumeroProcesso", '[^0-9]+', '', 'g') = $1
     `, [numeroProcesso])
     return processos.rows
   } catch (error) {
@@ -98,19 +98,19 @@ const buscar = async (client: Client, numeroProcesso: string) => {
 }
 const filtrar = async (client: Client, filtro: string) => {
   console.log(`filtrar => ${filtro}`)
-  try {
-    const processos = await client.query<Processo[]>(`
-      select *
-      from processo
-      where REGEXP_REPLACE(replace(LOWER(processo), ' ', ''), '[^0-9]+', '', 'g') like replace(LOWER($1), ' ', '')
-      or replace(LOWER(nome), ' ', '') like replace(LOWER($1), ' ', '')
-      order by length (processo) desc
-      fetch first 100 rows only
-    `, [`%${filtro}%`])
-    return processos.rows
-  } catch (error) {
-    throw error
-  }
+  const result = await client.query(`
+    select *
+    from "Processo" a
+    where a."NumeroProcesso" like $1
+    or exists (
+      select 6
+      from "PessoaRelacionada" b
+      where b."Nome" like $1
+    )
+    order by length (a."NumeroProcesso") desc
+    fetch first 100 rows only
+  `, [`%${filtro}%`])
+  return result.rows
 }
 const deletaAntigos = async (client: Client) => {
   console.log('deletaAntigos')
