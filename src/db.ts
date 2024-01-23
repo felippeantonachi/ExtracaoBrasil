@@ -105,11 +105,11 @@ const filtrar = async (client: Client, filtro: string) => {
     or exists (
       select 6
       from "PessoaRelacionada" b
-      where b."Nome" like $1
+      where lower(b."Nome") like $1
     )
     order by length (a."NumeroProcesso") desc
     fetch first 100 rows only
-  `, [`%${filtro}%`])
+  `, [`%${filtro.toLocaleLowerCase()}%`])
   return result.rows
 }
 const deletaAntigos = async (client: Client) => {
