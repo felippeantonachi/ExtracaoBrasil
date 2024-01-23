@@ -99,7 +99,7 @@ const buscar = async (client: Client, numeroProcesso: string) => {
 const filtrar = async (client: Client, filtro: string) => {
   console.log(`filtrar => ${filtro}`)
   const result = await client.query(`
-    select *
+    select a."NumeroProcesso" as PROCESSO, a."Area" as AREA_HA, a."FaseAtual" as FASE, null as ULT_EVENTO, null as NOME, a."UF" as UF
     from "Processo" a
     where a."NumeroProcesso" like $1
     or exists (
