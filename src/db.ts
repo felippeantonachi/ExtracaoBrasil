@@ -108,6 +108,7 @@ const filtrar = async (client: Client, filtro: string) => {
       where lower(b."Nome") like $1
     )
     order by length (a."NumeroProcesso") desc
+    fetch first 100 rows only
   `, [`%${filtro.toLocaleLowerCase()}%`])
   return result.rows
 }
