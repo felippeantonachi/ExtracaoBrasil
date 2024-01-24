@@ -38,6 +38,7 @@ const defineRotas = () => {
   })
   router.get('/filtrar', async (req, res) => {
     try {
+      console.log(req.query.filtro)
       const conexao = await conectar()
       try {
         const filtro = req.query.filtro
