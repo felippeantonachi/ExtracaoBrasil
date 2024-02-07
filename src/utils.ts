@@ -1,5 +1,5 @@
 import axios from 'axios'
-import decompress from 'decompress'
+import AdmZip  from 'adm-zip'
 import fs from 'fs'
 import { Processo } from './model/Processo'
 import { DBFFile } from 'dbffile'
@@ -28,19 +28,10 @@ const download = async () => {
 }
 const extrair = () => {
   console.log('extrair')
-  return new Promise((resolve, reject) => {
-    deleteDirR('./extracao', () => {
-      return decompress('BRASIL.zip', 'extracao', {
-        filter(file) {
-          return file.path === 'BRASIL.dbf' 
-        },
-      }).catch((err) => {
-        reject(err)
-      }).finally(() => {
-        fs.unlinkSync('Brasil.zip')
-        resolve('')
-      })
-    })
+  deleteDirR('./extracao', () => {
+    const zip = new AdmZip('./BRASIL.zip')
+    zip.extractAllTo('extracao')
+    fs.unlinkSync('Brasil.zip')
   })
 }
 const deleteDirR = (path: string, cb: CallableFunction) => {

@@ -24,9 +24,10 @@ const insereProcessos = async (client: Client, processos: Processo[]) => {
         processo.UF,
         processo.NOME
       ]
+      console.log('Processo: ', dadosProcesso[1])
       const resultadoInsercaoProcesso = await client.query(`
         insert into "Processo" ("Id", "NumeroProcesso", "Area", "FaseAtual", "UF", "NomeCliente")
-        select $1, $2, $3, $4, $5
+        select $1, $2, $3, $4, $5, $6
         where not exists (
           select 1
           from "Processo"
