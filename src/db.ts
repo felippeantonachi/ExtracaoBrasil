@@ -21,10 +21,11 @@ const insereProcessos = async (client: Client, processos: Processo[]) => {
         processo.PROCESSO.replace('/', ''),
         processo.AREA_HA,
         capitalizarTodasAsPalavras(processo.FASE),
-        processo.UF
+        processo.UF,
+        processo.NOME
       ]
       const resultadoInsercaoProcesso = await client.query(`
-        insert into "Processo" ("Id", "NumeroProcesso", "Area", "FaseAtual", "UF")
+        insert into "Processo" ("Id", "NumeroProcesso", "Area", "FaseAtual", "UF", "NomeCliente")
         select $1, $2, $3, $4, $5
         where not exists (
           select 1
