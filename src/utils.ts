@@ -3,6 +3,7 @@ import AdmZip  from 'adm-zip'
 import fs from 'fs'
 import { Processo } from './model/Processo'
 import { DBFFile } from 'dbffile'
+import path from 'path'
 
 const download = async () => {
   console.log('download')
@@ -29,9 +30,15 @@ const download = async () => {
 const extrair = () => {
   console.log('extrair')
   deleteDirR('./extracao', () => {
-    const zip = new AdmZip('./BRASIL.zip')
-    zip.extractAllTo('extracao')
-    fs.unlinkSync('Brasil.zip')
+    try {
+      const filePath = path.resolve(__dirname, '..')
+      const file = fs.readFileSync(`${filePath}/Brasil.zip`)
+      const zip = new AdmZip(file)
+      zip.extractAllTo('extracao')
+      fs.unlinkSync('Brasil.zip')
+    } catch (error) {
+      console.log(error)
+    }
   })
 }
 const deleteDirR = (path: string, cb: CallableFunction) => {
