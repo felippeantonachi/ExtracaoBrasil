@@ -28,7 +28,7 @@ const download = async () => {
   })
 }
 const extrair = () => {
-  console.log('inicio extrair')
+  console.log('extrair')
   deleteDirR('./extracao', () => {
     try {
       const filePath = path.resolve(__dirname, '..')
