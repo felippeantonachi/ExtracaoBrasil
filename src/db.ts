@@ -40,7 +40,7 @@ const insereProcessos = async (client: Client, processos: Processo[]) => {
         const resultadoSelect = await client.query(`
           select "Id"
           from "Processo"
-          where "NumeroProcesso" = $1
+          where "NumeroProcesso" = pad_with_zeros($1, 10)
         `, [processo.PROCESSO.replace('/', '')])
 
         idInserido = resultadoSelect.rows[0].Id
