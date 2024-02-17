@@ -27,11 +27,11 @@ const insereProcessos = async (client: Client, processos: Processo[]) => {
       console.log('Processo: ', dadosProcesso[1])
       const resultadoInsercaoProcesso = await client.query(`
         insert into "Processo" ("Id", "NumeroProcesso", "Area", "FaseAtual", "UF", "NomeCliente")
-        select $1, $2, $3, $4, $5, $6
+        select $1, pad_with_zeros($2, 10), $3, $4, $5, $6
         where not exists (
           select 1
           from "Processo"
-          where "NumeroProcesso" = $2
+          where "NumeroProcesso" = pad_with_zeros($2, 10)
         ) returning "Id"
       `, dadosProcesso)
       let idInserido = resultadoInsercaoProcesso.rows[0]?.Id
