@@ -14,8 +14,8 @@ async function start () {
   try {
     app.listen(port, () => {
       console.log(`Extração Brasil rodando na porta ${port}`)
+      iniciaProcessoArquivo()
     })
-    iniciaProcessoArquivo()
   } catch (error) {
     console.error(error) 
   }

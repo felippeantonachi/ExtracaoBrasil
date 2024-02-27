@@ -5,8 +5,8 @@ import { conectar, desconectar, insereProcessos } from './db'
 const iniciaProcessoArquivo = async () => {
   try {
     cron.schedule('0 */24 * * *', async () => {
-      await download()
-      await extrair()
+      // await download()
+      // await extrair()
       const processos = await dbfToArray()
       const conexao = await conectar()
       try {

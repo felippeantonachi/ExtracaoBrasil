@@ -89,10 +89,25 @@ const capitalizarPrimeiraLetra = (string: string) => {
     return string
   }
 }
-
+const adicionarZerosEsquerda = (numero: string, quantidadeZeros: number) => {
+  const numeroString = numero.toString()
+  const zerosFaltantes = quantidadeZeros - numeroString.length
+  if (zerosFaltantes <= 0) {
+      return numeroString
+  } else {
+      return '0'.repeat(zerosFaltantes) + numeroString
+  }
+}
+const distinctByProperty = (array: any, property: string) => {
+  return array.filter((obj: any, index: number, self: any) => {
+    return index === self.findIndex((t: any) => (t[property] === obj[property]))
+  })
+}
 export {
   download,
   extrair,
   dbfToArray,
-  capitalizarTodasAsPalavras
+  capitalizarTodasAsPalavras,
+  adicionarZerosEsquerda,
+  distinctByProperty
 }
