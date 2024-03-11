@@ -99,7 +99,9 @@ const adicionarZerosEsquerda = (numero: string, quantidadeZeros: number) => {
   }
 }
 const distinctByProperty = (array: any, property: string) => {
+  console.log('distinctByProperty')
   return array.filter((obj: any, index: number, self: any) => {
+    console.log(index)
     return index === self.findIndex((t: any) => (t[property] === obj[property]))
   })
 }
