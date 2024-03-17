@@ -10,7 +10,7 @@ const iniciaProcessoArquivo = async () => {
       let processos = await dbfToArray()
       const conexao = await conectar()
       try {
-        processos = distinctByProperty(processos, 'PROCESSO')
+        console.log(processos.length)
         await insereBulk(processos)
       } catch (error) {
         console.log(error)

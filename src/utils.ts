@@ -64,8 +64,10 @@ const dbfToArray = async () => {
     const processos: Processo[] = []
     let dbf = await DBFFile.open('./extracao/BRASIL.dbf')
     let records = await dbf.readRecords() as unknown as Processo[]
-    for (let processo of records) {
+    for (let [index, processo] of records.entries()) {
+      console.log(index)
       processo.PROCESSO = adicionarZerosEsquerda(`${processo.NUMERO}${processo.ANO}`, 10)
+      if (processos.some(p => p.PROCESSO === processo.PROCESSO)) continue
       processo.FASE = capitalizarTodasAsPalavras(processo.FASE)
       processo.DATA_ULT_EVENTO = processo.ULT_EVENTO.substring(processo.ULT_EVENTO.length-10)
       const eventoId = processo.ULT_EVENTO.substring(0, processo.ULT_EVENTO.indexOf(' -'))
