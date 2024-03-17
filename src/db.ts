@@ -20,6 +20,57 @@ const insereBulk = async (processos: Processo[]) => {
     password: 'postgres',
     port: 54322,
   });
+  
+  await pool.query(`
+  CREATE TABLE IF NOT EXISTS Brasil (
+    PROCESSO varchar(255),
+    NUMERO varchar(255),
+    ANO varchar(255),
+    AREA_HA varchar(255),
+    ID varchar(255),
+    FASE varchar(255),
+    ULT_EVENTO varchar(255),
+    DATA_ULT_EVENTO varchar(255),
+    NOME varchar(255),
+    SUBS varchar(255),
+    USO varchar(255),
+    UF varchar(255),
+    DSProcesso varchar(255)
+  );
+  
+  CREATE OR REPLACE PROCEDURE public.atualiza_processos_da_brasil()
+  LANGUAGE plpgsql
+  AS $$
+  BEGIN
+      INSERT INTO "Processo" ("Id", "NumeroProcesso", "Area", "FaseAtual", "UF", "NomeCliente")
+      SELECT uuid_generate_v4(), brasil.PROCESSO, brasil.AREA_HA, brasil.FASE, brasil.UF, brasil.NOME
+      FROM brasil
+      WHERE NOT EXISTS (
+          SELECT 1
+          FROM "Processo"
+          WHERE "NumeroProcesso" = brasil.PROCESSO
+      );
+  END;
+  $$;
+  
+  CREATE OR REPLACE PROCEDURE public.atualiza_eventos_da_brasil()
+  LANGUAGE plpgsql
+  AS $$
+  BEGIN
+      INSERT INTO "Evento" ("Id", "Descricao", "Data", "ProcessoId", "DataCriacao", "DataAtualizacao")
+      SELECT uuid_generate_v4(), brasil.ULT_EVENTO, brasil.DATA_ULT_EVENTO, proc."Id", NOW(), NOW()
+      FROM brasil
+      JOIN "Processo" proc ON proc."NumeroProcesso" = brasil.PROCESSO
+      WHERE NOT EXISTS (
+          SELECT 1
+          FROM "Evento" evt
+          WHERE evt."Descricao" = brasil.ULT_EVENTO
+          AND evt."Data" = brasil.DATA_ULT_EVENTO
+          AND evt."ProcessoId" = proc."Id"
+      );
+  END;
+  $$;
+  `);
 
   const tamanhoDoLote = 5000; // Define o tamanho de cada lote
   try {
