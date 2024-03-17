@@ -4,6 +4,7 @@ import fs from 'fs'
 import { Processo } from './model/Processo'
 import { DBFFile } from 'dbffile'
 import path from 'path'
+const eventos: [{value: number, label: string}] = require('./eventos.json')
 
 const download = async () => {
   console.log('download')
@@ -64,6 +65,11 @@ const dbfToArray = async () => {
     let dbf = await DBFFile.open('./extracao/BRASIL.dbf')
     let records = await dbf.readRecords() as unknown as Processo[]
     for (let processo of records) {
+      processo.PROCESSO = adicionarZerosEsquerda(`${processo.NUMERO}${processo.ANO}`, 10)
+      processo.FASE = capitalizarTodasAsPalavras(processo.FASE)
+      processo.DATA_ULT_EVENTO = processo.ULT_EVENTO.substring(processo.ULT_EVENTO.length-10)
+      const eventoId = processo.ULT_EVENTO.substring(0, processo.ULT_EVENTO.indexOf(' -'))
+      processo.ULT_EVENTO = eventos.find(e => e.value === parseInt(eventoId))?.label || ''
       processos.push(processo)
     }
     return processos

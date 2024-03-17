@@ -6,6 +6,7 @@ export class Processo {
   ID: string
   FASE: string
   ULT_EVENTO: string
+  DATA_ULT_EVENTO: string
   NOME: string
   SUBS: string
   USO: string
@@ -20,6 +21,7 @@ export class Processo {
     this.ID = processo.ID
     this.FASE = processo.FASE
     this.ULT_EVENTO = processo.ULT_EVENTO
+    this.DATA_ULT_EVENTO = processo.DATA_ULT_EVENTO
     this.NOME = processo.NOME
     this.SUBS = processo.SUBS
     this.USO = processo.USO
