@@ -14,11 +14,11 @@ const desconectar = async (client: Client): Promise<void> => {
 const insereBulk = async (processos: Processo[]) => {
   console.log('insereBulk')
   const pool = new Pool({
-    user: 'postgres',
-    host: '127.0.0.1',
-    database: 'postgres',
-    password: 'postgres',
-    port: 54322,
+    user: process.env.USER_PG,
+    host: process.env.HOST_PG,
+    database: process.env.DATABASE_PG,
+    password: process.env.PASSWORD_PG,
+    port: parseInt(process.env.PORT_PG!),
   });
   
   await pool.query(`
