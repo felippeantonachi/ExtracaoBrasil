@@ -1,7 +1,9 @@
 node_modules
 .env
-extracao
+extracaoAtivos
+extracaoInativos
 yarn-error.log
 Brasil.zip
+BRASIL_INATIVOS.zip
 dist
 .vscode

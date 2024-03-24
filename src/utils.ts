@@ -6,8 +6,8 @@ import { DBFFile } from 'dbffile'
 import path from 'path'
 const eventos: [{value: number, label: string}] = require('./eventos.json')
 
-const download = async () => {
-  console.log('download')
+const downloadAtivo = async () => {
+  console.log('downloadAtivo')
   return new Promise((resolve, reject) => {
     axios({
       url: 'https://app.anm.gov.br/dadosabertos/SIGMINE/PROCESSOS_MINERARIOS/BRASIL.zip',
@@ -28,15 +28,51 @@ const download = async () => {
     })
   })
 }
-const extrair = () => {
-  console.log('extrair')
-  deleteDirR('./extracao', () => {
+const downloadInativo = async () => {
+  console.log('downloadInativo')
+  return new Promise((resolve, reject) => {
+    axios({
+      url: 'https://app.anm.gov.br/dadosabertos/SIGMINE/PROCESSOS_MINERARIOS/BRASIL_INATIVOS.zip',
+      method: 'GET',
+      responseType: 'stream',
+      onDownloadProgress: (a) => {
+        const porcentagem = (a.progress || 0) * 100
+        console.log(porcentagem)
+      }
+    }).then((response) => {
+      response.data.on('error', (error: any) => {
+        fs.unlinkSync('BRASIL_INATIVOS.zip')
+        reject(error)
+      })
+      .pipe(fs.createWriteStream('BRASIL_INATIVOS.zip'))
+      .on('error', (error: any) => reject(error))
+      .on('finish', () => { resolve('') })
+    })
+  })
+}
+const extrairAtivos = () => {
+  console.log('extrairAtivos')
+  deleteDirR('./extracaoAtivos', () => {
     try {
       const filePath = path.resolve(__dirname, '..')
       const file = fs.readFileSync(`${filePath}/Brasil.zip`)
       const zip = new AdmZip(file)
-      zip.extractAllTo('extracao')
+      zip.extractAllTo('extracaoAtivos')
       fs.unlinkSync('Brasil.zip')
+    } catch (error) {
+      console.log(error)
+    }
+  })
+}
+const extrairInativos = () => {
+  console.log('extrairInativos')
+  deleteDirR('./extracaoInativos', () => {
+    try {
+      const filePath = path.resolve(__dirname, '..')
+      const file = fs.readFileSync(`${filePath}/BRASIL_INATIVOS.zip`)
+      const zip = new AdmZip(file)
+      zip.extractAllTo('extracaoInativos')
+      fs.unlinkSync('BRASIL_INATIVOS.zip')
     } catch (error) {
       console.log(error)
     }
@@ -58,11 +94,11 @@ const deleteDirR = (path: string, cb: CallableFunction) => {
     cb(new Error('The path passed does not exist.'))
   }
 }
-const dbfToArray = async () => {
-  console.log('dbfToArray')
+const dbfToArrayAtivos = async () => {
+  console.log('dbfToArrayAtivos')
   try {
     const processos: Processo[] = []
-    let dbf = await DBFFile.open('./extracao/BRASIL.dbf')
+    let dbf = await DBFFile.open('./extracaoAtivos/BRASIL.dbf')
     let records = await dbf.readRecords() as unknown as Processo[]
     for (let [index, processo] of records.entries()) {
       console.log(index)
@@ -75,6 +111,16 @@ const dbfToArray = async () => {
       processos.push(processo)
     }
     return processos
+  } catch (error) {
+    throw error
+  }
+}
+const dbfToArrayInativos = async () => {
+  console.log('dbfToArrayInativos')
+  try {
+    let dbf = await DBFFile.open('./extracaoInativos/BRASIL_INATIVOS.dbf')
+    let records = await dbf.readRecords() as unknown as Processo[]
+    return records
   } catch (error) {
     throw error
   }
@@ -114,9 +160,12 @@ const distinctByProperty = (array: any, property: string) => {
   })
 }
 export {
-  download,
-  extrair,
-  dbfToArray,
+  downloadAtivo,
+  downloadInativo,
+  extrairAtivos,
+  extrairInativos,
+  dbfToArrayAtivos,
+  dbfToArrayInativos,
   capitalizarTodasAsPalavras,
   adicionarZerosEsquerda,
   distinctByProperty

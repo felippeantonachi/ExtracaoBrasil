@@ -1,28 +1,34 @@
 import cron from 'node-cron'
-import { download, extrair, dbfToArray, distinctByProperty } from './utils'
-import { conectar, desconectar, insereBulk } from './db'
+import { downloadAtivo, downloadInativo, extrairAtivos, dbfToArrayInativos, dbfToArrayAtivos, extrairInativos } from './utils'
+import { conectar, desconectar, insereBulk, atualizaBulk } from './db'
 
 const iniciaProcessoArquivo = async () => {
-  try {
-    cron.schedule('0 3 * * *', async () => {
-      await download()
-      await extrair()
-      let processos = await dbfToArray()
+  cron.schedule('0 3 * * *', async () => {
+    try {
+      const inicio = new Date()
+      await downloadAtivo()
+      await downloadInativo()
+      await extrairAtivos()
+      await extrairInativos()
+      let processosAtivos = await dbfToArrayAtivos()
+      let processosInativos = await dbfToArrayInativos()
       const conexao = await conectar()
       try {
-        console.log(processos.length)
-        await insereBulk(processos)
+        await insereBulk(processosAtivos)
+        await atualizaBulk(processosInativos)
+        console.log('Inicio', inicio)
+        console.log('Fim', new Date())
       } catch (error) {
         console.log(error)
       } finally {
         desconectar(conexao)
       }
-    }, {
-      runOnInit: true
-    })
-  } catch (error) {
-    console.error(error)
-  }
+    } catch (error) {
+      console.error(error)
+    }
+  }, {
+    runOnInit: true
+  })
 }
 
 export {
