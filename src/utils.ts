@@ -1,4 +1,5 @@
 import axios from 'axios'
+import https from 'https'
 import AdmZip  from 'adm-zip'
 import fs from 'fs'
 import { Processo } from './model/Processo'
@@ -6,12 +7,17 @@ import { DBFFile } from 'dbffile'
 import path from 'path'
 const eventos: [{value: number, label: string}] = require('./eventos.json')
 
+const agent = new https.Agent({  
+  rejectUnauthorized: false
+});
+
 const downloadAtivo = async () => {
   console.log('downloadAtivo')
   return new Promise((resolve, reject) => {
     axios({
       url: 'https://app.anm.gov.br/dadosabertos/SIGMINE/PROCESSOS_MINERARIOS/BRASIL.zip',
       method: 'GET',
+      httpsAgent: agent,
       responseType: 'stream',
       onDownloadProgress: (a) => {
         const porcentagem = (a.progress || 0) * 100
@@ -25,8 +31,11 @@ const downloadAtivo = async () => {
       .pipe(fs.createWriteStream('Brasil.zip'))
       .on('error', (error: any) => reject(error))
       .on('finish', () => { resolve('') })
-    })
+    }).catch((error: any) => {
+      if (fs.existsSync('Brasil.zip')) fs.unlinkSync('Brasil.zip')
+      reject(error)
   })
+})
 }
 const downloadInativo = async () => {
   console.log('downloadInativo')
@@ -34,6 +43,7 @@ const downloadInativo = async () => {
     axios({
       url: 'https://app.anm.gov.br/dadosabertos/SIGMINE/PROCESSOS_MINERARIOS/BRASIL_INATIVOS.zip',
       method: 'GET',
+      httpsAgent: agent,
       responseType: 'stream',
       onDownloadProgress: (a) => {
         const porcentagem = (a.progress || 0) * 100
